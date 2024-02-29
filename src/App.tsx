@@ -1,26 +1,21 @@
+/* eslint-disable react/jsx-no-comment-textnodes */
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Placeholder from './screens/placeholder/Placeholder';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Placeholder />} /> 
+            <Route path="/dashboard" element={<Placeholder />} /> 
+            <Route path="/path_name/:dynamic" element={<Placeholder />} />
+            <Route path="/path_name" element={<Placeholder />} />
+            <Route path="/*" element={<Placeholder />} /> 
+          </Routes>
+    </BrowserRouter>
+);
 }
 
 export default App;
