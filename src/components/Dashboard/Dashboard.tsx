@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -13,27 +14,25 @@ import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import Chart from './modules/Chart';
-import Deposits from './modules/Deposits';
-import Orders from './modules/Orders';
-import { mainListItems, secondaryListItems } from './modules/ListItems';
+import AddIcon from '@mui/icons-material/Add';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Avatar from '@mui/material/Avatar'; 
 
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+
+import { mainListItems, secondaryListItems } from './modules/ListItems';
 
 const drawerWidth: number = 240;
 
@@ -85,13 +84,58 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-// remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function Dashboard() {
+  const location = useLocation();
   const [open, setOpen] = React.useState(true);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [taskName, setTaskName] = React.useState('');
+  const [taskLocation, setTaskLocation] = React.useState('');
+  const [taskMonth, setTaskMonth] = React.useState('');
+  const [taskDate, setTaskDate] = React.useState('');
+  const [taskHour, setTaskHour] = React.useState('');
+  const [taskMinute, setTaskMinute] = React.useState('');
+  const [taskAmPm, setTaskAmPm] = React.useState('');
+  const [tasks, setTasks] = React.useState<string[]>([]);
+  const { state } = location || {};
+  const username = state && state.username;
+
   const toggleDrawer = () => {
     setOpen(!open);
+  };
+
+  const handleAddTask = () => {
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+
+
+  const handleFinishTask = () => {
+    if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
+      alert('One or more of the boxes above is missing an input! Please fill in the missing boxes.');
+      return;
+    }
+
+    const newTask = `⭐ ${taskName} - Location: ${taskLocation} - Date: ${taskMonth}/${taskDate} at ${taskHour}:${taskMinute} ${taskAmPm}`;
+    setTasks([...tasks, newTask]);
+
+    setDialogOpen(false);
+    setTaskName('');
+    setTaskLocation('');
+    setTaskMonth('');
+    setTaskDate('');
+    setTaskHour('');
+    setTaskMinute('');
+    setTaskAmPm('');
+  };
+
+  const handleDeleteTask = (indexToRemove: number) => {
+    const updatedTasks = tasks.filter((_, index) => index !== indexToRemove);
+    setTasks(updatedTasks);
   };
 
   return (
@@ -123,13 +167,15 @@ export default function Dashboard() {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              Dashboard
+              Task List
             </Typography>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
+
+                <Avatar>{username.slice(0,2)}</Avatar>
               </Badge>
             </IconButton>
+
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
@@ -167,43 +213,188 @@ export default function Dashboard() {
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
-              {/* Chart */}
-              <Grid item xs={12} md={8} lg={9}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  <Chart />
-                </Paper>
-              </Grid>
-              {/* Recent Deposits */}
-              <Grid item xs={12} md={4} lg={3}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  <Deposits />
-                </Paper>
-              </Grid>
-              {/* Recent Orders */}
               <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                  <Orders />
-                </Paper>
+                <Typography variant="h5" align="center" gutterBottom>
+                  {username ? `Welcome, ${username}!` : 'Welcome!'}
+                </Typography>
+                {tasks.length === 0 ? (
+                  <Paper
+                    sx={{
+                      p: 2,
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Typography variant="body1">
+                      No current tasks. Click the 'Add Task' button to begin creating a task.
+                    </Typography>
+                  </Paper>
+                ) : (
+                  tasks.map((task, index) => (
+                    <Paper
+                      sx={{
+                        p: 2,
+                        mb: 2, // Add margin bottom to create space between tasks
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative',
+                      }}
+                      key={index}
+                    >
+                      <Typography variant="body1">
+                        {task.split(' - ').map((line, i) => (
+                          <React.Fragment key={i}>
+                            {line}
+                            <br />
+                          </React.Fragment>
+                        ))}
+                      </Typography>
+                      {/*Delete Button*/}
+                      <IconButton
+                      color = "error"
+                      size = "small"
+                      aria-label = "delete"
+                      onClick = {() => handleDeleteTask(index)}
+                      sx = {{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px'
+                      }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Paper>
+                  ))
+                )}
               </Grid>
             </Grid>
-            <Copyright sx={{ pt: 4 }} />
           </Container>
+          <IconButton
+            color="primary"
+            aria-label="add task"
+            onClick={handleAddTask}
+            sx={{
+              position: 'fixed',
+              right: open ? drawerWidth + 20 : 20,
+              left: 100,
+            }}
+          >
+            <AddIcon />
+            <Typography>Add Task</Typography>
+          </IconButton>
+          <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
+            <DialogTitle>Add Task</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="taskName"
+                label="Task Name"
+                type="text"
+                fullWidth
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                id="taskLocation"
+                label="Task Location"
+                type="text"
+                fullWidth
+                value={taskLocation}
+                onChange={(e) => setTaskLocation(e.target.value)}
+              />
+              {/* Task Date Select */}
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+  <FormControl fullWidth sx={{ mr: 2 }}>
+    <InputLabel htmlFor="task-month">Month</InputLabel>
+    <Select
+      value={taskMonth}
+      onChange={(e) => setTaskMonth(e.target.value)}
+      inputProps={{
+        name: 'task-month',
+        id: 'task-month',
+      }}
+    >
+      {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
+        <MenuItem key={month} value={month}>{month}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+  <FormControl fullWidth sx={{ mr: 2 }}>
+    <InputLabel htmlFor="task-date">Date</InputLabel>
+    <Select
+      value={taskDate}
+      onChange={(e) => setTaskDate(e.target.value)}
+      inputProps={{
+        name: 'task-date',
+        id: 'task-date',
+      }}
+    >
+      {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+        <MenuItem key={day} value={day}>{day}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Box>
+{/* Task Time Select */}
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+  <FormControl fullWidth sx={{ mr: 2 }}>
+    <InputLabel htmlFor="task-hour">Hour</InputLabel>
+    <Select
+      value={taskHour}
+      onChange={(e) => setTaskHour(e.target.value)}
+      inputProps={{
+        name: 'task-hour',
+        id: 'task-hour',
+      }}
+    >
+      {Array.from({ length: 12 }, (_, index) => index + 1).map((hour) => (
+        <MenuItem key={hour} value={hour}>{hour}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+  <FormControl fullWidth sx={{ mr: 2 }}>
+    <InputLabel htmlFor="task-minute">Minute</InputLabel>
+    <Select
+      value={taskMinute}
+      onChange={(e) => setTaskMinute(e.target.value)}
+      inputProps={{
+        name: 'task-minute',
+        id: 'task-minute',
+      }}
+    >
+      {Array.from({ length: 60 }, (_, index) => index).map((minute) => (
+        <MenuItem key={minute} value={minute}>{minute}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+  <FormControl fullWidth>
+    <InputLabel htmlFor="task-am-pm">AM/PM</InputLabel>
+    <Select
+      value={taskAmPm}
+      onChange={(e) => setTaskAmPm(e.target.value)}
+      inputProps={{
+        name: 'task-am-pm',
+        id: 'task-am-pm',
+      }}
+    >
+      <MenuItem value="am">AM</MenuItem>
+      <MenuItem value="pm">PM</MenuItem>
+    </Select>
+  </FormControl>
+</Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClose}>Cancel</Button>
+              <Button onClick={handleFinishTask}>Finish</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Box>
     </ThemeProvider>
+
+
+
   );
 }
