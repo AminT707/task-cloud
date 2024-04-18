@@ -1,40 +1,49 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+
+import {
+  styled,
+  createTheme,
+  ThemeProvider,
+  CssBaseline,
+  Box,
+  Toolbar,
+  Typography,
+  IconButton,
+  Badge,
+  Container,
+  Grid,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Avatar,
+} from '@mui/material';
+import { ChevronLeft as ChevronLeftIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import MuiDrawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import AddIcon from '@mui/icons-material/Add';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Avatar from '@mui/material/Avatar'; 
+import CloseIcon from '@mui/icons-material/Close';
 
 
-import { mainListItems, secondaryListItems } from './modules/ListItems';
+const drawerWidth: number = 0;
 
-const drawerWidth: number = 240;
+interface Task {
+  name: string;
+  location: string;
+  month: number;
+  date: number;
+  hour: number;
+  minute: number;
+  amPm: string;
+}
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -98,6 +107,7 @@ export default function Dashboard() {
   const [taskMinute, setTaskMinute] = React.useState('');
   const [taskAmPm, setTaskAmPm] = React.useState('');
   const [tasks, setTasks] = React.useState<string[]>([]);
+  // const [tasks, setTasks] = React.useState<Task[]>([]);
   const { state } = location || {};
   const username = state && state.username;
 
@@ -113,17 +123,86 @@ export default function Dashboard() {
     setDialogOpen(false);
   };
 
-
   const handleFinishTask = () => {
     if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
-      alert('One or more of the boxes above is missing an input! Please fill in the missing boxes.');
+      alert('Please fill in all fields before adding the task.');
       return;
     }
-
-    const newTask = `⭐ ${taskName} - Location: ${taskLocation} - Date: ${taskMonth}/${taskDate} at ${taskHour}:${taskMinute} ${taskAmPm}`;
-    setTasks([...tasks, newTask]);
-
+  
+    const newTask: Task = {
+      name: taskName,
+      location: taskLocation,
+      month: parseInt(taskMonth),
+      date: parseInt(taskDate),
+      hour: parseInt(taskHour),
+      minute: parseInt(taskMinute),
+      amPm: taskAmPm,
+    };
+  
+    const formattedTask = formatTask(newTask);
+  
+    const updatedTasks = [...tasks, formattedTask];
+  
+    updatedTasks.sort((taskA, taskB) => {
+      const dateA = getDateFromTask(taskA);
+      const dateB = getDateFromTask(taskB);
+  
+      if (dateA < dateB) {
+        return -1; // dateA comes before dateB
+      } else if (dateA > dateB) {
+        return 1; // dateA comes after dateB
+      } else {
+        // Dates are the same, compare time and AM/PM
+        const timeA = getTimeFromTask(taskA);
+        const timeB = getTimeFromTask(taskB);
+  
+        if (timeA < timeB) {
+          return -1; // timeA comes before timeB
+        } else if (timeA > timeB) {
+          return 1; // timeA comes after timeB
+        } else {
+          return 0; // tasks are identical in date and time
+        }
+      }
+    });
+  
+    setTasks(updatedTasks);
     setDialogOpen(false);
+    resetTaskInputs();
+  };
+
+  const getDateFromTask = (task: string) => {
+    const datePart = task.match(/Date: (\d+)\/(\d+)/);
+    if (!datePart) return new Date(0); // Return epoch date for invalid format
+    const [, monthStr, dayStr] = datePart;
+    const year = new Date().getFullYear(); // Assuming current year for simplicity
+    const month = parseInt(monthStr);
+    const day = parseInt(dayStr);
+    return new Date(year, month - 1, day); // Date without time (time will be compared separately)
+  };
+  
+  const getTimeFromTask = (task: string) => {
+    const timePart = task.match(/Time: (\d+):(\d+) (\w{2})/);
+    if (!timePart) return 0; // Return 0 for invalid format
+    const [, hourStr, minuteStr, amPm] = timePart;
+    let hour = parseInt(hourStr);
+    const minute = parseInt(minuteStr);
+    if (amPm.toLowerCase() === 'pm' && hour !== 12) {
+      hour += 12; // Convert PM hour to 24-hour format
+    }
+    return hour * 60 + minute; // Time in minutes (for easy comparison)
+  };
+  
+  const formatTask = (task: Task) => {
+    const { name, location, month, date, hour, minute, amPm } = task;
+
+    if(minute < 10)
+      return `⭐ ${name} - Location: ${location} - Date: ${month}/${date} - Time: ${hour}:0${minute} ${amPm}`;
+
+    return `⭐ ${name} - Location: ${location} - Date: ${month}/${date} - Time: ${hour}:${minute} ${amPm}`;
+  };
+  
+  const resetTaskInputs = () => {
     setTaskName('');
     setTaskLocation('');
     setTaskMonth('');
@@ -142,24 +221,13 @@ export default function Dashboard() {
     <ThemeProvider theme={defaultTheme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
+        
         <AppBar position="absolute" open={open}>
           <Toolbar
             sx={{
               pr: '24px', // keep right padding when drawer closed
             }}
           >
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer}
-              sx={{
-                marginRight: '36px',
-                ...(open && { display: 'none' }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
             <Typography
               component="h1"
               variant="h6"
@@ -175,7 +243,6 @@ export default function Dashboard() {
                 <Avatar>{username.slice(0,2)}</Avatar>
               </Badge>
             </IconButton>
-
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
@@ -192,11 +259,6 @@ export default function Dashboard() {
             </IconButton>
           </Toolbar>
           <Divider />
-          <List component="nav">
-            {mainListItems}
-            <Divider sx={{ my: 1 }} />
-            {secondaryListItems}
-          </List>
         </Drawer>
         <Box
           component="main"
@@ -322,7 +384,7 @@ export default function Dashboard() {
     </Select>
   </FormControl>
   <FormControl fullWidth sx={{ mr: 2 }}>
-    <InputLabel htmlFor="task-date">Date</InputLabel>
+    <InputLabel htmlFor="task-date">Day</InputLabel>
     <Select
       value={taskDate}
       onChange={(e) => setTaskDate(e.target.value)}
@@ -390,11 +452,9 @@ export default function Dashboard() {
               <Button onClick={handleFinishTask}>Finish</Button>
             </DialogActions>
           </Dialog>
+          
         </Box>
       </Box>
     </ThemeProvider>
-
-
-
   );
 }
