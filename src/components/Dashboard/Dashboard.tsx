@@ -56,12 +56,6 @@ const Dashboard: React.FC = () => {
   const { state } = location || {};
   const username = state && state.username;
 
-  // const handleDeleteTask = (indexToRemove: number) => {
-  //   const updatedTasks = tasks.filter((_, index) => index !== indexToRemove);
-  //   setTasks(updatedTasks);
-  // }
-
-  
   useEffect(() => {
     // Sort tasks whenever tasks array changes
     sortTasks();
@@ -93,41 +87,6 @@ const Dashboard: React.FC = () => {
 
     setTasks(sortedTasks);
   };
-
-  // const handleAddTask = () => {
-  //   setDialogOpen(true);
-  // };
-
-  // const handleDialogClose = () => {
-  //   setDialogOpen(false);
-  // };
-
-  // const handleFinishTask = () => {
-  //   if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
-  //     alert('Please fill in all fields before adding the task.');
-  //     return;
-  //   }
-
-  //   const newTask: Task = {
-  //     name: taskName,
-  //     location: taskLocation,
-  //     month: parseInt(taskMonth),
-  //     date: parseInt(taskDate),
-  //     hour: parseInt(taskHour),
-  //     minute: parseInt(taskMinute),
-  //     amPm: taskAmPm,
-  //   };
-
-  //   const formattedTask = formatTask(newTask);
-
-  //   const updatedTasks = [...tasks, formattedTask];
-
-  //   setTasks(updatedTasks);
-  //   setDialogOpen(false);
-  //   resetTaskInputs();
-  //   setCurrentTask(newTask);
-  //   setDescriptionDialogOpen(true);
-  // };
 
   const getDateFromTask = (task: string) => {
     const datePart = task.match(/Date: (\d+)\/(\d+)/);
@@ -184,7 +143,7 @@ const Dashboard: React.FC = () => {
   };
 
   const parseTaskDetails = (task: string): Task | null => {
-    const regexResult = task.match(/⭐ (.+) - Location: (.+) - Date: (\d+)\/(\d+) - Time: (\d+):(\d+) (\w{2})/);
+    const regexResult = task.match(/⭐ (.+) - Location: (.+) - Date: (\d+)\/(\d+) at (\d+):(\d+) (\w{2})/);
     if (regexResult) {
       const [, name, location, month, date, hour, minute, amPm] = regexResult;
       return {
@@ -203,15 +162,17 @@ const Dashboard: React.FC = () => {
   const handleAddTask = (taskIndex?: number) => {
     if (taskIndex !== undefined) {
       // Extract the task details from the existing task string
-      const [name, location, month, date, hour, minute, amPm] = tasks[taskIndex].split(/ - |:|\/|\s/);
+      const calcTask = parseTaskDetails(tasks[taskIndex])
+      
       // Set the state variables for task inputs
-      setTaskName(name.slice(2)); // Remove the star and space from the name
-      setTaskLocation(location.split(': ')[1]); // Extract the location from the string
-      setTaskMonth(month);
-      setTaskDate(date);
-      setTaskHour(hour);
-      setTaskMinute(minute);
-      setTaskAmPm(amPm);
+      setTaskName(calcTask?.name ?? ""); // Remove the star and space from the name
+      console.log(calcTask)
+      setTaskLocation(calcTask?.location ?? ""); 
+      setTaskDate(calcTask?.date?.toString() ?? '');
+      setTaskMonth(calcTask?.month?.toString() ?? '');
+      setTaskHour(calcTask?.hour?.toString() ?? '');
+      setTaskMinute(calcTask?.minute?.toString() ?? '');
+      setTaskAmPm(calcTask?.amPm ?? "");
       setEditIndex(taskIndex);
     } else {
       // Clear the task inputs if adding a new task
@@ -507,14 +468,14 @@ const Dashboard: React.FC = () => {
           <Dialog open={descriptionDialogOpen} onClose={handleCloseDescription} fullWidth maxWidth="sm">
             <DialogTitle>Upcoming Task</DialogTitle>
             <DialogContent>
-            {(tasks.slice(3).map((task, index) => (
+            {(tasks.map((task, index) => (
                     <Paper
                       sx={{
                         p: 2,
                         mb: 2,
                         display: 'flex',
                         flexDirection: 'column',
-                        position: 'relative', // Add this line to make the position relative
+                        position: 'relative', 
                       }}
                       key={index}
                     >
