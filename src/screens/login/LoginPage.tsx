@@ -7,6 +7,7 @@ import { Button } from '@mui/material';
 const LoginPage = () => {
   return (
     <div className={styles.loginContainer}>
+        
         <SignIn />
 
       {/* Link to SignUpPage */}

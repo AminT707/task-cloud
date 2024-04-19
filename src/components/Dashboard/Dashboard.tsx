@@ -229,6 +229,33 @@ const Dashboard: React.FC = () => {
     return null;
   };
 
+  const handleAddTask = () => {
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+
+  const handleFinishTask = () => {
+    if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
+      alert('One or more of the boxes above is missing an input! Please fill in the missing boxes.');
+      return;
+    }
+
+    const newTask = `⭐ ${taskName} - Location: ${taskLocation} - Date: ${taskMonth}/${taskDate} at ${taskHour}:${taskMinute} ${taskAmPm}`;
+    setTasks([...tasks, newTask]);
+
+    setDialogOpen(false);
+    setTaskName('');
+    setTaskLocation('');
+    setTaskMonth('');
+    setTaskDate('');
+    setTaskHour('');
+    setTaskMinute('');
+    setTaskAmPm('');
+  };
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <Box sx={{ display: 'flex' }}>

@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-no-comment-textnodes */
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -16,5 +15,6 @@ function App() {
     </BrowserRouter>
 );
 }
+
 
 export default App;
