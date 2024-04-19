@@ -1,3 +1,5 @@
+export {};
+
 // User DTO
 class UserDTO {
     id: number;

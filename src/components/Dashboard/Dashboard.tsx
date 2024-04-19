@@ -1,22 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+//import MenuIcon from '@mui/icons-material/Menu';
+//import NotificationsIcon from '@mui/icons-material/Notifications';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -28,86 +24,67 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-import { mainListItems, secondaryListItems } from './modules/ListItems';
-
-const drawerWidth: number = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-  open?: boolean;
-}
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    '& .MuiDrawer-paper': {
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: drawerWidth,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      boxSizing: 'border-box',
-      ...(!open && {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-          width: theme.spacing(9),
-        },
-      }),
-    },
-  }),
-);
-
-const defaultTheme = createTheme();
+const lightTheme = createTheme();
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 export default function Dashboard() {
   const location = useLocation();
-  const [open, setOpen] = React.useState(true);
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [taskName, setTaskName] = React.useState('');
-  const [taskLocation, setTaskLocation] = React.useState('');
-  const [taskMonth, setTaskMonth] = React.useState('');
-  const [taskDate, setTaskDate] = React.useState('');
-  const [taskHour, setTaskHour] = React.useState('');
-  const [taskMinute, setTaskMinute] = React.useState('');
-  const [taskAmPm, setTaskAmPm] = React.useState('');
-  const [tasks, setTasks] = React.useState<string[]>([]);
-  const { state } = location || {};
-  const username = state && state.username;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [taskName, setTaskName] = useState('');
+  const [taskLocation, setTaskLocation] = useState('');
+  const [taskMonth, setTaskMonth] = useState('');
+  const [taskDate, setTaskDate] = useState('');
+  const [taskHour, setTaskHour] = useState('');
+  const [taskMinute, setTaskMinute] = useState('');
+  const [taskAmPm, setTaskAmPm] = useState('');
+  const [tasks, setTasks] = useState<string[]>([]);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
-  const toggleDrawer = () => {
-    setOpen(!open);
+  const handleDeleteTask = (indexToRemove: number) => {
+    const updatedTasks = tasks.filter((_, index) => index !== indexToRemove);
+    setTasks(updatedTasks);
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = (taskIndex?: number) => {
+    if (taskIndex !== undefined) {
+      // Extract the task details from the existing task string
+      const [name, location, month, date, hour, minute, amPm] = tasks[taskIndex].split(/ - |:|\/|\s/);
+      // Set the state variables for task inputs
+      setTaskName(name.slice(2)); // Remove the star and space from the name
+      setTaskLocation(location.split(': ')[1]); // Extract the location from the string
+      setTaskMonth(month);
+      setTaskDate(date);
+      setTaskHour(hour);
+      setTaskMinute(minute);
+      setTaskAmPm(amPm);
+      setEditIndex(taskIndex);
+    } else {
+      // Clear the task inputs if adding a new task
+      setTaskName('');
+      setTaskLocation('');
+      setTaskMonth('');
+      setTaskDate('');
+      setTaskHour('');
+      setTaskMinute('');
+      setTaskAmPm('');
+      setEditIndex(null);
+    }
     setDialogOpen(true);
   };
 
   const handleDialogClose = () => {
     setDialogOpen(false);
+    setEditIndex(null); // Reset the edit index when the dialog is closed
   };
 
   const handleFinishTask = () => {
@@ -117,9 +94,19 @@ export default function Dashboard() {
     }
 
     const newTask = `⭐ ${taskName} - Location: ${taskLocation} - Date: ${taskMonth}/${taskDate} at ${taskHour}:${taskMinute} ${taskAmPm}`;
-    setTasks([...tasks, newTask]);
+    if (editIndex !== null) {
+      // Update existing task if in edit mode
+      const updatedTasks = tasks.map((task, index) => (index === editIndex ? newTask : task));
+      setTasks(updatedTasks);
+    } else {
+      // Add new task if not in edit mode
+      setTasks([...tasks, newTask]);
+    }
+
+    
 
     setDialogOpen(false);
+    // Clear task inputs after adding/editing task
     setTaskName('');
     setTaskLocation('');
     setTaskMonth('');
@@ -127,30 +114,20 @@ export default function Dashboard() {
     setTaskHour('');
     setTaskMinute('');
     setTaskAmPm('');
+    setEditIndex(null);
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="absolute" open={open}>
+        <MuiAppBar position="absolute">
           <Toolbar
             sx={{
-              pr: '24px', // keep right padding when drawer closed
+              pr: '24px',
+              bgcolor: '#1976d2',
             }}
           >
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer}
-              sx={{
-                marginRight: '36px',
-                ...(open && { display: 'none' }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
             <Typography
               component="h1"
               variant="h6"
@@ -158,35 +135,23 @@ export default function Dashboard() {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              Dashboard
+              Task Cloud Dashboard
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+            {/* Dark Mode Toggle Button */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              </Typography>
+              <IconButton
+                color="inherit"
+                onClick={() => setDarkMode(!darkMode)}
+                sx={{ mr: 1 }}
+              >
+                {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+              </IconButton>
+            </Box>
           </Toolbar>
-        </AppBar>
-        <Drawer variant="permanent" open={open}>
-          <Toolbar
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              px: [1],
-            }}
-          >
-            <IconButton onClick={toggleDrawer}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Toolbar>
-          <Divider />
-          <List component="nav">
-            {mainListItems}
-            <Divider sx={{ my: 1 }} />
-            {secondaryListItems}
-          </List>
-        </Drawer>
+        </MuiAppBar>
         <Box
           component="main"
           sx={{
@@ -204,7 +169,7 @@ export default function Dashboard() {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Typography variant="h5" align="center" gutterBottom>
-                  {username ? `Welcome, ${username}!` : 'Welcome!'}
+                  {location.state && location.state.username ? `Welcome, ${location.state.username}!` : 'Welcome!'}
                 </Typography>
                 {tasks.length === 0 ? (
                   <Paper
@@ -223,9 +188,10 @@ export default function Dashboard() {
                     <Paper
                       sx={{
                         p: 2,
-                        mb: 2, // Add margin bottom to create space between tasks
+                        mb: 2,
                         display: 'flex',
                         flexDirection: 'column',
+                        position: 'relative', // Add this line to make the position relative
                       }}
                       key={index}
                     >
@@ -237,6 +203,32 @@ export default function Dashboard() {
                           </React.Fragment>
                         ))}
                       </Typography>
+                      {/* Edit Button */}
+                      <IconButton
+                        color="primary"
+                        aria-label="edit"
+                        sx={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '28px', // Adjust the position to make it appear next to the delete button
+                        }}
+                        onClick={() => handleAddTask(index)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                      {/* Delete Button */}
+                      <IconButton
+                        color="error"
+                        aria-label="delete"
+                        onClick={() => handleDeleteTask(index)}
+                        sx={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px'
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
                     </Paper>
                   ))
                 )}
@@ -246,17 +238,17 @@ export default function Dashboard() {
           <IconButton
             color="primary"
             aria-label="add task"
-            onClick={handleAddTask}
+            onClick={() => handleAddTask()}
             sx={{
               position: 'fixed',
-              left: 170,
+              left: 140,
             }}
           >
             <AddIcon />
             <Typography>Add Task</Typography>
           </IconButton>
           <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
-            <DialogTitle>Add Task</DialogTitle>
+            <DialogTitle>{editIndex !== null ? 'Edit Task' : 'Add Task'}</DialogTitle>
             <DialogContent>
               <TextField
                 autoFocus
@@ -277,86 +269,84 @@ export default function Dashboard() {
                 value={taskLocation}
                 onChange={(e) => setTaskLocation(e.target.value)}
               />
-              {/* Task Date Select */}
-<Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-  <FormControl fullWidth sx={{ mr: 2 }}>
-    <InputLabel htmlFor="task-month">Month</InputLabel>
-    <Select
-      value={taskMonth}
-      onChange={(e) => setTaskMonth(e.target.value)}
-      inputProps={{
-        name: 'task-month',
-        id: 'task-month',
-      }}
-    >
-      {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
-        <MenuItem key={month} value={month}>{month}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-  <FormControl fullWidth sx={{ mr: 2 }}>
-    <InputLabel htmlFor="task-date">Date</InputLabel>
-    <Select
-      value={taskDate}
-      onChange={(e) => setTaskDate(e.target.value)}
-      inputProps={{
-        name: 'task-date',
-        id: 'task-date',
-      }}
-    >
-      {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
-        <MenuItem key={day} value={day}>{day}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Box>
-{/* Task Time Select */}
-<Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-  <FormControl fullWidth sx={{ mr: 2 }}>
-    <InputLabel htmlFor="task-hour">Hour</InputLabel>
-    <Select
-      value={taskHour}
-      onChange={(e) => setTaskHour(e.target.value)}
-      inputProps={{
-        name: 'task-hour',
-        id: 'task-hour',
-      }}
-    >
-      {Array.from({ length: 12 }, (_, index) => index + 1).map((hour) => (
-        <MenuItem key={hour} value={hour}>{hour}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-  <FormControl fullWidth sx={{ mr: 2 }}>
-    <InputLabel htmlFor="task-minute">Minute</InputLabel>
-    <Select
-      value={taskMinute}
-      onChange={(e) => setTaskMinute(e.target.value)}
-      inputProps={{
-        name: 'task-minute',
-        id: 'task-minute',
-      }}
-    >
-      {Array.from({ length: 60 }, (_, index) => index).map((minute) => (
-        <MenuItem key={minute} value={minute}>{minute}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-  <FormControl fullWidth>
-    <InputLabel htmlFor="task-am-pm">AM/PM</InputLabel>
-    <Select
-      value={taskAmPm}
-      onChange={(e) => setTaskAmPm(e.target.value)}
-      inputProps={{
-        name: 'task-am-pm',
-        id: 'task-am-pm',
-      }}
-    >
-      <MenuItem value="am">AM</MenuItem>
-      <MenuItem value="pm">PM</MenuItem>
-    </Select>
-  </FormControl>
-</Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <FormControl fullWidth sx={{ mr: 2 }}>
+                  <InputLabel htmlFor="task-month">Month</InputLabel>
+                  <Select
+                    value={taskMonth}
+                    onChange={(e) => setTaskMonth(e.target.value)}
+                    inputProps={{
+                      name: 'task-month',
+                      id: 'task-month',
+                    }}
+                  >
+                    {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
+                      <MenuItem key={month} value={month}>{month}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mr: 2 }}>
+                  <InputLabel htmlFor="task-date">Date</InputLabel>
+                  <Select
+                    value={taskDate}
+                    onChange={(e) => setTaskDate(e.target.value)}
+                    inputProps={{
+                      name: 'task-date',
+                      id: 'task-date',
+                    }}
+                  >
+                    {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                      <MenuItem key={day} value={day}>{day}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <FormControl fullWidth sx={{ mr: 2 }}>
+                  <InputLabel htmlFor="task-hour">Hour</InputLabel>
+                  <Select
+                    value={taskHour}
+                    onChange={(e) => setTaskHour(e.target.value)}
+                    inputProps={{
+                      name: 'task-hour',
+                      id: 'task-hour',
+                    }}
+                  >
+                    {Array.from({ length: 12 }, (_, index) => index + 1).map((hour) => (
+                      <MenuItem key={hour} value={hour}>{hour}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mr: 2 }}>
+                  <InputLabel htmlFor="task-minute">Minute</InputLabel>
+                  <Select
+                    value={taskMinute}
+                    onChange={(e) => setTaskMinute(e.target.value)}
+                    inputProps={{
+                      name: 'task-minute',
+                      id: 'task-minute',
+                    }}
+                  >
+                    {Array.from({ length: 60 }, (_, index) => index).map((minute) => (
+                      <MenuItem key={minute} value={minute < 10 ? `0${minute}` : `${minute}`}>{minute < 10 ? `0${minute}` : `${minute}`}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel htmlFor="task-am-pm">AM/PM</InputLabel>
+                  <Select
+                    value={taskAmPm}
+                    onChange={(e) => setTaskAmPm(e.target.value)}
+                    inputProps={{
+                      name: 'task-am-pm',
+                      id: 'task-am-pm',
+                    }}
+                  >
+                    <MenuItem value="am">AM</MenuItem>
+                    <MenuItem value="pm">PM</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleDialogClose}>Cancel</Button>
