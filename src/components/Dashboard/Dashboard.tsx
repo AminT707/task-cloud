@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -28,6 +28,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Task } from '../../constants/dtoTypes';
 
 const lightTheme = createTheme();
 const darkTheme = createTheme({
@@ -36,8 +37,9 @@ const darkTheme = createTheme({
   },
 });
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   const location = useLocation();
+  const [open, setOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [taskLocation, setTaskLocation] = useState('');
@@ -49,10 +51,153 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<string[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const { state } = location || {};
+  const username = state && state.username;
+
+  // const handleDeleteTask = (indexToRemove: number) => {
+  //   const updatedTasks = tasks.filter((_, index) => index !== indexToRemove);
+  //   setTasks(updatedTasks);
+  // }
+
+  
+  useEffect(() => {
+    // Sort tasks whenever tasks array changes
+    sortTasks();
+  }, [tasks]);
+
+  const sortTasks = () => {
+    const sortedTasks = [...tasks].sort((taskA, taskB) => {
+      const dateA = getDateFromTask(taskA);
+      const dateB = getDateFromTask(taskB);
+
+      if (dateA < dateB) {
+        return -1; // dateA comes before dateB
+      } else if (dateA > dateB) {
+        return 1; // dateA comes after dateB
+      } else {
+        // Dates are the same, compare time and AM/PM
+        const timeA = getTimeFromTask(taskA);
+        const timeB = getTimeFromTask(taskB);
+
+        if (timeA < timeB) {
+          return -1; // timeA comes before timeB
+        } else if (timeA > timeB) {
+          return 1; // timeA comes after timeB
+        } else {
+          return 0; // tasks are identical in date and time
+        }
+      }
+    });
+
+    setTasks(sortedTasks);
+  };
+
+  // const handleAddTask = () => {
+  //   setDialogOpen(true);
+  // };
+
+  // const handleDialogClose = () => {
+  //   setDialogOpen(false);
+  // };
+
+  // const handleFinishTask = () => {
+  //   if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
+  //     alert('Please fill in all fields before adding the task.');
+  //     return;
+  //   }
+
+  //   const newTask: Task = {
+  //     name: taskName,
+  //     location: taskLocation,
+  //     month: parseInt(taskMonth),
+  //     date: parseInt(taskDate),
+  //     hour: parseInt(taskHour),
+  //     minute: parseInt(taskMinute),
+  //     amPm: taskAmPm,
+  //   };
+
+  //   const formattedTask = formatTask(newTask);
+
+  //   const updatedTasks = [...tasks, formattedTask];
+
+  //   setTasks(updatedTasks);
+  //   setDialogOpen(false);
+  //   resetTaskInputs();
+  //   setCurrentTask(newTask);
+  //   setDescriptionDialogOpen(true);
+  // };
+
+  const getDateFromTask = (task: string) => {
+    const datePart = task.match(/Date: (\d+)\/(\d+)/);
+    if (!datePart) return new Date(0); // Return epoch date for invalid format
+    const [, monthStr, dayStr] = datePart;
+    const year = new Date().getFullYear(); // Assuming current year for simplicity
+    const month = parseInt(monthStr);
+    const day = parseInt(dayStr);
+    return new Date(year, month - 1, day); // Date without time (time will be compared separately)
+  };
+
+  const getTimeFromTask = (task: string) => {
+    const timePart = task.match(/Time: (\d+):(\d+) (\w{2})/);
+    if (!timePart) return 0; // Return 0 for invalid format
+    const [, hourStr, minuteStr, amPm] = timePart;
+    let hour = parseInt(hourStr);
+    const minute = parseInt(minuteStr);
+    if (amPm.toLowerCase() === 'pm' && hour !== 12) {
+      hour += 12; // Convert PM hour to 24-hour format
+    }
+    return hour * 60 + minute; // Time in minutes (for easy comparison)
+  };
+
+  const formatTask = (task: Task) => {
+    const { name, location, month, date, hour, minute, amPm } = task;
+    const formattedMinute = minute < 10 ? `0${minute}` : `${minute}`;
+    return `⭐ ${name} - Location: ${location} - Date: ${month}/${date} - Time: ${hour}:${formattedMinute} ${amPm}`;
+  };
+
+  const resetTaskInputs = () => {
+    setTaskName('');
+    setTaskLocation('');
+    setTaskMonth('');
+    setTaskDate('');
+    setTaskHour('');
+    setTaskMinute('');
+    setTaskAmPm('');
+  };
 
   const handleDeleteTask = (indexToRemove: number) => {
     const updatedTasks = tasks.filter((_, index) => index !== indexToRemove);
     setTasks(updatedTasks);
+  };
+
+  const handleOpenDescription = () => {
+    if (tasks.length > 0) {
+      setCurrentTask(parseTaskDetails(tasks[0])); // Set the first task as the current task
+      setDescriptionDialogOpen(true);
+    }
+  };
+
+  const handleCloseDescription = () => {
+    setDescriptionDialogOpen(false);
+  };
+
+  const parseTaskDetails = (task: string): Task | null => {
+    const regexResult = task.match(/⭐ (.+) - Location: (.+) - Date: (\d+)\/(\d+) - Time: (\d+):(\d+) (\w{2})/);
+    if (regexResult) {
+      const [, name, location, month, date, hour, minute, amPm] = regexResult;
+      return {
+        name,
+        location,
+        month: parseInt(month),
+        date: parseInt(date),
+        hour: parseInt(hour),
+        minute: parseInt(minute),
+        amPm,
+      };
+    }
+    return null;
   };
 
   const handleAddTask = (taskIndex?: number) => {
@@ -156,9 +301,7 @@ export default function Dashboard() {
           component="main"
           sx={{
             backgroundColor: (theme) =>
-              theme.palette.mode === 'light'
-                ? theme.palette.grey[100]
-                : theme.palette.grey[900],
+              theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900],
             flexGrow: 1,
             height: '100vh',
             overflow: 'auto',
@@ -172,13 +315,7 @@ export default function Dashboard() {
                   {location.state && location.state.username ? `Welcome, ${location.state.username}!` : 'Welcome!'}
                 </Typography>
                 {tasks.length === 0 ? (
-                  <Paper
-                    sx={{
-                      p: 2,
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
+                  <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="body1">
                       No current tasks. Click the 'Add Task' button to begin creating a task.
                     </Typography>
@@ -246,6 +383,18 @@ export default function Dashboard() {
           >
             <AddIcon />
             <Typography>Add Task</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            aria-label="open upcoming tasks"
+            onClick={handleOpenDescription}
+            sx={{
+              position: 'fixed',
+              right: 20,
+              bottom: 20,
+            }}
+          >
+            <Typography variant="body2">Upcoming Tasks</Typography>
           </IconButton>
           <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
             <DialogTitle>{editIndex !== null ? 'Edit Task' : 'Add Task'}</DialogTitle>
@@ -353,8 +502,68 @@ export default function Dashboard() {
               <Button onClick={handleFinishTask}>Finish</Button>
             </DialogActions>
           </Dialog>
+          
+          
+          <Dialog open={descriptionDialogOpen} onClose={handleCloseDescription} fullWidth maxWidth="sm">
+            <DialogTitle>Upcoming Task</DialogTitle>
+            <DialogContent>
+            {(tasks.slice(3).map((task, index) => (
+                    <Paper
+                      sx={{
+                        p: 2,
+                        mb: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative', // Add this line to make the position relative
+                      }}
+                      key={index}
+                    >
+                      <Typography variant="body1">
+                        {task.split(' - ').map((line, i) => (
+                          <React.Fragment key={i}>
+                            {line}
+                            <br />
+                          </React.Fragment>
+                        ))}
+                      </Typography>
+                      {/* Edit Button */}
+                      <IconButton
+                        color="primary"
+                        aria-label="edit"
+                        sx={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '28px', // Adjust the position to make it appear next to the delete button
+                        }}
+                        onClick={() => handleAddTask(index)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                      {/* Delete Button */}
+                      <IconButton
+                        color="error"
+                        aria-label="delete"
+                        onClick={() => handleDeleteTask(index)}
+                        sx={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px'
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Paper>
+                  ))
+                )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDescription}>Close</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Box>
     </ThemeProvider>
   );
-}
+};
+
+export default Dashboard;

@@ -6,14 +6,14 @@ import DashboardPage from './screens/dashboard/DashboardPage';
 
 
 function App() {
- return (
-   <BrowserRouter>
-     <Routes>
-       <Route path="/" element={<LoginPage />} />
-       <Route path="/dashboard" element={<DashboardPage />} /> 
-     </Routes>
-   </BrowserRouter>
- );
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} /> 
+        <Route path="/dashboard" element={<DashboardPage />} />  
+      </Routes>
+    </BrowserRouter>
+);
 }
 
 

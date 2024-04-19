@@ -1,7 +1,7 @@
 export {};
 
 // User DTO
-class UserDTO {
+export class UserDTO {
     id: number;
     username: string;
     email: string;
@@ -16,7 +16,7 @@ class UserDTO {
 }
 
 // Task DTO
-class TaskDTO {
+export class TaskDTO {
     id: number;
     title: string;
     description?: string;
@@ -33,3 +33,13 @@ class TaskDTO {
         this.user_id = user_id;
     }
 }
+
+export interface Task {
+    name: string;
+    location: string;
+    month: number;
+    date: number;
+    hour: number;
+    minute: number;
+    amPm: string;
+  }

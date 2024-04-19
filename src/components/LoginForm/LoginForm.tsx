@@ -28,13 +28,23 @@ function SignIn() {
    if (!username || !password) {
      setMissingInputError(true);
      setError(false);
-   } else if (username === 'correct username' && password === 'correct password') {
-     navigate("/dashboard", { state: { username: username } });
-   } else {
-     setError(true);
-     setMissingInputError(false);
+   } else{
+    localStorage.setItem('username', username as string);
+    localStorage.setItem('password', password as string);
+
+    navigate("/dashboard", {state:{username: username}});
    }
+  //else if (username === 'correct username' && password === 'correct password') {
+  //    navigate("/dashboard", { state: { username: username } });
+  //  } else {
+  //    setError(true);
+  //    setMissingInputError(false);
+  //  }
  };
+
+ const handleSignUpClick = () => {
+  navigate('/signup');
+ }
 
  const defaultTheme = createTheme();
 
@@ -108,7 +118,7 @@ function SignIn() {
                </Link>
              </Grid>
              <Grid item>
-               <Link href="#" variant="body2">
+               <Link href="#" variant="body2" onClick={handleSignUpClick}>
                  {"Don't have an account? Sign Up"}
                </Link>
              </Grid>
@@ -119,6 +129,4 @@ function SignIn() {
    </ThemeProvider>
  );
 }
-
 export default SignIn;
-
