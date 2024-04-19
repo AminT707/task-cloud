@@ -26,8 +26,9 @@ import {
   MenuItem,
   Avatar,
 } from '@mui/material';
-import { ChevronLeft as ChevronLeftIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import { Task } from '../../constants/dtoTypes';
 
 const drawerWidth: number = 0;
 
@@ -39,16 +40,6 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(1),
   },
 }));
-
-interface Task {
-  name: string;
-  location: string;
-  month: number;
-  date: number;
-  hour: number;
-  minute: number;
-  amPm: string;
-}
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -123,40 +114,40 @@ const Dashboard: React.FC = () => {
     setTasks(sortedTasks);
   };
 
-  const handleAddTask = () => {
-    setDialogOpen(true);
-  };
+  // const handleAddTask = () => {
+  //   setDialogOpen(true);
+  // };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
+  // const handleDialogClose = () => {
+  //   setDialogOpen(false);
+  // };
 
-  const handleFinishTask = () => {
-    if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
-      alert('Please fill in all fields before adding the task.');
-      return;
-    }
+  // const handleFinishTask = () => {
+  //   if (!taskName || !taskLocation || !taskMonth || !taskDate || !taskHour || !taskMinute || !taskAmPm) {
+  //     alert('Please fill in all fields before adding the task.');
+  //     return;
+  //   }
 
-    const newTask: Task = {
-      name: taskName,
-      location: taskLocation,
-      month: parseInt(taskMonth),
-      date: parseInt(taskDate),
-      hour: parseInt(taskHour),
-      minute: parseInt(taskMinute),
-      amPm: taskAmPm,
-    };
+  //   const newTask: Task = {
+  //     name: taskName,
+  //     location: taskLocation,
+  //     month: parseInt(taskMonth),
+  //     date: parseInt(taskDate),
+  //     hour: parseInt(taskHour),
+  //     minute: parseInt(taskMinute),
+  //     amPm: taskAmPm,
+  //   };
 
-    const formattedTask = formatTask(newTask);
+  //   const formattedTask = formatTask(newTask);
 
-    const updatedTasks = [...tasks, formattedTask];
+  //   const updatedTasks = [...tasks, formattedTask];
 
-    setTasks(updatedTasks);
-    setDialogOpen(false);
-    resetTaskInputs();
-    setCurrentTask(newTask);
-    setDescriptionDialogOpen(true);
-  };
+  //   setTasks(updatedTasks);
+  //   setDialogOpen(false);
+  //   resetTaskInputs();
+  //   setCurrentTask(newTask);
+  //   setDescriptionDialogOpen(true);
+  // };
 
   const getDateFromTask = (task: string) => {
     const datePart = task.match(/Date: (\d+)\/(\d+)/);
