@@ -41,5 +41,6 @@ export interface Task {
     date: number;
     hour: number;
     minute: number;
+    year: number;
     amPm: string;
   }
